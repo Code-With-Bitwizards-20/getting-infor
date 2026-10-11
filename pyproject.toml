@@ -1,7 +1,29 @@
+[project]
+name = "sherlock-project"
+version = "0.16.2"
+description = "Hunt down social media accounts by username across social networks"
+readme = "docs/pyproject/README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "flask>=3.0.0",
+    "gunicorn>=21.2.0",
+    "requests>=2.28.0",
+    "requests-futures>=1.0.0",
+    "reportlab>=4.0.0",
+    "beautifulsoup4>=4.12.0",
+    "phonenumbers>=8.13.0",
+    "certifi>=2023.7.22",
+    "colorama>=0.4.6",
+    "PySocks>=1.7.1",
+    "stem>=1.8.2",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "tomli>=2.0.1",
+]
+
 [build-system]
 requires = [ "poetry-core>=1.2.0" ]
 build-backend = "poetry.core.masonry.api"
-# poetry-core 1.8 not available in .fc39. Can upgrade to 1.8.0 at .fc39 EOL
 
 [tool.poetry-version-plugin]
 source = "init"
@@ -38,7 +60,6 @@ classifiers = [
 homepage = "https://sherlockproject.xyz/"
 repository = "https://github.com/sherlock-project/sherlock"
 
-
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/sherlock-project/sherlock/issues"
 
@@ -59,7 +80,6 @@ jsonschema = "^4.0.0"
 rstr = "^3.2.2"
 pytest = "^8.4.2"
 pytest-xdist = "^3.8.0"
-
 
 [tool.poetry.group.ci.dependencies]
 defusedxml = "^0.7.1"
