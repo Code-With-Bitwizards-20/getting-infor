@@ -769,6 +769,151 @@ def api_status():
     )
 
 
+@app.post("/api/check-batch")
+def check_batch():
+    """Serverless endpoint: verify a batch of sites without long-running connections."""
+    payload = request.get_json(silent=True) or {}
+    usernames = _parse_usernames(payload.get("usernames", "") or payload.get("username", ""))
+    site_names = payload.get("sites", [])
+    timeout = max(2, min(int(payload.get("timeout", 4)), 10))
+    proxy = payload.get("proxy", "").strip() or None
+
+    if not usernames or not site_names:
+        return jsonify(results=[])
+
+    data_path = PROJECT_ROOT / "sherlock_project" / "resources" / "data.json"
+    sites = SitesInformation(str(data_path), honor_exclusions=False)
+    site_dict = {site.name: site.information.copy() for site in sites if site.name in site_names}
+
+    results = []
+    class BatchNotifier(QueryNotify):
+        def update(self, result):
+            super().update(result)
+            results.append({
+                "type": "result",
+                "username": result.username,
+                "site": result.site_name,
+                "url": result.site_url_user,
+                "status": result.status.value.lower(),
+                "response_time": round(result.query_time * 1000) if result.query_time is not None else None,
+                "context": result.context,
+            })
+
+    notifier = BatchNotifier()
+    for u in usernames:
+        u_sites = {name: details.copy() for name, details in site_dict.items()}
+        sherlock(u, u_sites, notifier, proxy=proxy, timeout=timeout)
+
+    return jsonify(results=results)
+
+
+@app.post("/api/deep-osint")
+def deep_osint_endpoint():
+    """Serverless endpoint: run GitHub, Gravatar, Keybase, Dorks, Holehe OSINT."""
+    payload = request.get_json(silent=True) or {}
+    username = payload.get("username", "").strip()
+    if not username:
+        return jsonify(error="Username required"), 400
+
+    out = {}
+    try:
+        out["github"] = run_github_osint(username)
+    except Exception:
+        out["github"] = None
+    try:
+        out["gravatar"] = run_gravatar_osint(username)
+    except Exception:
+        out["gravatar"] = None
+    try:
+        out["keybase"] = run_keybase_osint(username)
+    except Exception:
+        out["keybase"] = None
+    try:
+        out["snapchat"] = run_snapintel_osint(username)
+    except Exception:
+        out["snapchat"] = None
+    try:
+        out["instagram"] = run_instagram_osint(username)
+    except Exception:
+        out["instagram"] = None
+    try:
+        out["dorks"] = generate_google_dorks(username)
+    except Exception:
+        out["dorks"] = []
+
+    candidate_emails = []
+    if out.get("github") and out["github"].get("email"):
+        candidate_emails.append(out["github"]["email"])
+    if not candidate_emails and "@" not in username:
+        candidate_emails.append(f"{username}@gmail.com")
+
+    holehe_matches = []
+    for em in candidate_emails[:1]:
+        try:
+            m = run_holehe_email_osint(em, max_checks=15)
+            if m:
+                holehe_matches.extend(m)
+        except Exception:
+            pass
+    out["holehe"] = holehe_matches
+
+    return jsonify(out)
+
+
+@app.post("/api/report/pdf")
+def generate_pdf_post():
+    """Generate PDF directly from JSON payload without relying on in-memory server sessions."""
+    payload = request.get_json(silent=True) or {}
+    session_id = payload.get("session_id", "report")
+    usernames = payload.get("usernames", ["target"])
+    sherlock_results = payload.get("sherlock_results", [])
+    exif_results = payload.get("exif_results", [])
+    github_data = payload.get("github_data")
+    gravatar_data = payload.get("gravatar_data")
+    keybase_data = payload.get("keybase_data")
+    snapchat_data = payload.get("snapchat_data")
+    instagram_data = payload.get("instagram_data")
+    phone_data = payload.get("phone_data")
+    breach_data = payload.get("breach_data")
+    dorks_data = payload.get("dorks_data", [])
+    socid_data = payload.get("socid_data", {})
+    holehe_data = payload.get("holehe_data", [])
+    contacts = payload.get("contacts", {"emails": [], "phones": []})
+    risk_assessment = payload.get("risk_assessment", {})
+
+    try:
+        pdf_bytes = build_pdf_report(
+            session_id=session_id,
+            usernames=usernames,
+            sherlock_results=sherlock_results,
+            exif_results=exif_results,
+            github_data=github_data,
+            gravatar_data=gravatar_data,
+            keybase_data=keybase_data,
+            snapchat_data=snapchat_data,
+            instagram_data=instagram_data,
+            phone_data=phone_data,
+            breach_data=breach_data,
+            dorks_data=dorks_data,
+            socid_data=socid_data,
+            holehe_data=holehe_data,
+            contacts=contacts,
+            risk_assessment=risk_assessment,
+        )
+        safe_name = "_".join(usernames)[:30]
+        filename = f"sherlock_osint_report_{safe_name}.pdf"
+        return Response(
+            pdf_bytes,
+            mimetype="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(len(pdf_bytes)),
+            },
+        )
+    except Exception as exc:
+        return jsonify(error=f"PDF generation failed: {str(exc)}"), 500
+
+
 if __name__ == "__main__":
     print("Sherlock Web + ExifTool OSINT Suite is ready at http://127.0.0.1:5000")
     app.run(host="127.0.0.1", port=5000, threaded=True)

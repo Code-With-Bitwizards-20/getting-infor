@@ -1682,45 +1682,90 @@ function handleServerEvent(event) {
 // ============================================================================
 // Actions: PDF & JSON Download
 // ============================================================================
-function triggerPdfDownload() {
-  if (!state.sessionId) {
-    showToast("No active investigation session to download", "error");
-    return;
-  }
+async function triggerPdfDownload() {
   showToast("Preparing PDF Dossier...", "info");
-  const downloadUrl = `/api/report/pdf/${state.sessionId}`;
-  const link = document.createElement("a");
-  link.href = downloadUrl;
-  link.download = `sherlock_osint_report_${state.sessionId.slice(0, 8)}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    const res = await fetch("/api/report/pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: state.sessionId || "report",
+        usernames: [elements.input.value.trim() || "target"],
+        sherlock_results: state.results,
+        exif_results: state.exifResults,
+        github_data: state.githubData,
+        gravatar_data: state.gravatarData,
+        keybase_data: state.keybaseData,
+        snapchat_data: state.snapchatData,
+        instagram_data: state.instagramData,
+        phone_data: state.phoneData,
+        breach_data: state.breachData,
+        dorks_data: state.dorksData,
+        socid_data: state.socidData,
+        holehe_data: state.holeheData,
+        contacts: { emails: [], phones: [] },
+        risk_assessment: state.riskAssessment || {},
+      }),
+    });
+    if (!res.ok) throw new Error("Server error generating PDF");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `sherlock_osint_report_${(state.sessionId || "case").slice(0, 8)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast("PDF downloaded successfully!", "success");
+  } catch (err) {
+    showToast("Failed to download PDF: " + err.message, "error");
+  }
 }
 
 function triggerJsonDownload() {
-  if (!state.sessionId) {
-    showToast("No active investigation session to export", "error");
-    return;
-  }
   showToast("Downloading JSON Intelligence Export...", "info");
-  const downloadUrl = `/api/report/json/${state.sessionId}`;
-  const link = document.createElement("a");
-  link.href = downloadUrl;
-  link.download = `sherlock_osint_data_${state.sessionId.slice(0, 8)}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    const payload = {
+      case_id: state.sessionId || "export",
+      username: elements.input.value.trim(),
+      generated_at: new Date().toISOString(),
+      confirmed_profiles_count: state.results.filter(r => r.status === "claimed").length,
+      sherlock_results: state.results,
+      github_osint: state.githubData,
+      gravatar_osint: state.gravatarData,
+      keybase_osint: state.keybaseData,
+      snapchat_osint: state.snapchatData,
+      instagram_osint: state.instagramData,
+      phone_osint: state.phoneData,
+      breach_osint: state.breachData,
+      dorks_osint: state.dorksData,
+      holehe_osint: state.holeheData,
+      risk_assessment: state.riskAssessment,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `sherlock_osint_data_${(state.sessionId || "case").slice(0, 8)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    showToast("Export error: " + err.message, "error");
+  }
 }
 
 // ============================================================================
-// Search Form Submission
+// Search Form Submission (Serverless Batch-Driven Engine)
 // ============================================================================
 async function handleSubmit(event) {
   event.preventDefault();
   elements.error.textContent = "";
 
-  const usernames = elements.input.value.trim();
-  if (!usernames) {
+  const rawUsernames = elements.input.value.trim();
+  if (!rawUsernames) {
     elements.error.textContent = "Please enter at least one target username.";
     elements.input.focus();
     return;
@@ -1730,53 +1775,135 @@ async function handleSubmit(event) {
   elements.casePanel.hidden = false;
   elements.casePanel.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const timeout = parseInt(elements.timeout.value, 10) || 20;
-  const maxImages = parseInt(elements.maxImages.value, 10) || 5;
+  const timeout = parseInt(elements.timeout.value, 10) || 5;
   const proxy = elements.proxy.value.trim();
   const nsfw = elements.nsfw.checked;
-  const scanExif = elements.scanExif.checked;
   const deepOsint = elements.deepOsint.checked;
 
+  const sessionId = Math.random().toString(16).substring(2, 10);
+  state.sessionId = sessionId;
+  state.finished = false;
+  state.cancelled = false;
+  elements.caseId.textContent = `#CASE-${sessionId.toUpperCase()}`;
+  elements.title.textContent = `Investigating: @${rawUsernames}`;
+  elements.subtitle.textContent = "Querying platforms and gathering intelligence…";
+
   setRunningState(true);
+  state.startedAt = Date.now();
+  clearInterval(state.timer);
+  state.timer = setInterval(() => {
+    const elapsedSec = (Date.now() - state.startedAt) / 1000;
+    elements.elapsed.textContent = formatElapsed(elapsedSec);
+  }, 1000);
 
   try {
-    const response = await fetch("/api/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        usernames,
-        timeout,
-        proxy,
-        nsfw,
-        scan_exif: scanExif,
-        deep_osint: deepOsint,
-        max_images_per_site: maxImages,
-      }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      elements.error.textContent = data.error || "Unable to launch investigation.";
-      setRunningState(false);
-      return;
+    // 1. Fetch site list from server
+    let sites = [];
+    try {
+      const sitesRes = await fetch("/api/sites");
+      const sitesData = await sitesRes.json();
+      const allSites = sitesData.sites || [];
+      sites = (nsfw ? allSites : allSites.filter(s => !s.nsfw)).map(s => s.name);
+    } catch {
+      sites = ["GitHub", "Twitter", "Instagram", "Reddit", "TikTok", "YouTube", "Telegram", "Pinterest", "Spotify", "GitLab"];
     }
 
-    state.sessionId = data.session_id;
-    elements.caseId.textContent = `#CASE-${data.session_id.slice(0, 8).toUpperCase()}`;
-    elements.title.textContent = `Investigating: ${data.usernames.map(u => `@${u}`).join(", ")}`;
-    elements.subtitle.textContent = "Querying platforms and extracting ExifTool image forensics…";
+    const totalSites = sites.length;
+    handleServerEvent({ type: "start", total: totalSites, sites: totalSites });
 
-    state.startedAt = Date.now();
-    clearInterval(state.timer);
-    state.timer = setInterval(() => {
-      const elapsedSec = (Date.now() - state.startedAt) / 1000;
-      elements.elapsed.textContent = formatElapsed(elapsedSec);
-    }, 1000);
+    // 2. Launch Deep OSINT in parallel (GitHub, Gravatar, Keybase, Dorks, Holehe)
+    if (deepOsint) {
+      fetch("/api/deep-osint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: rawUsernames }),
+      })
+      .then(res => res.json())
+      .then(d => {
+        if (state.cancelled) return;
+        if (d.github) handleServerEvent({ type: "osint_github", username: rawUsernames, data: d.github });
+        if (d.gravatar) handleServerEvent({ type: "osint_gravatar", username: rawUsernames, data: d.gravatar });
+        if (d.keybase) handleServerEvent({ type: "osint_keybase", username: rawUsernames, data: d.keybase });
+        if (d.snapchat) handleServerEvent({ type: "osint_snapchat", username: rawUsernames, data: d.snapchat });
+        if (d.instagram) handleServerEvent({ type: "osint_instagram", username: rawUsernames, data: d.instagram });
+        if (d.dorks && d.dorks.length) handleServerEvent({ type: "osint_dorks", username: rawUsernames, data: d.dorks });
+        if (d.holehe && d.holehe.length) handleServerEvent({ type: "osint_holehe", email: "", data: d.holehe });
+      })
+      .catch(e => console.debug("Deep OSINT non-critical notice:", e));
+    }
 
-    connectEventStream(data.session_id);
+    // 3. Process sites in batches of 15 with concurrency 3
+    const BATCH_SIZE = 15;
+    const batches = [];
+    for (let i = 0; i < sites.length; i += BATCH_SIZE) {
+      batches.push(sites.slice(i, i + BATCH_SIZE));
+    }
+
+    let checkedCount = 0;
+    let foundCount = 0;
+    let activeIndex = 0;
+    const CONCURRENCY = 3;
+
+    async function processNextBatch() {
+      if (state.cancelled || state.finished) return;
+      if (activeIndex >= batches.length) return;
+      const batchSites = batches[activeIndex++];
+
+      try {
+        const res = await fetch("/api/check-batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usernames: rawUsernames,
+            sites: batchSites,
+            timeout: timeout,
+            proxy: proxy,
+          }),
+        });
+        const data = await res.json();
+        const results = data.results || [];
+        for (const r of results) {
+          if (state.cancelled) return;
+          checkedCount++;
+          if (r.status === "claimed") foundCount++;
+          r.checked = checkedCount;
+          r.total = totalSites;
+          r.found = foundCount;
+          handleServerEvent(r);
+        }
+      } catch (err) {
+        checkedCount += batchSites.length;
+        elements.checked.textContent = checkedCount;
+        if (totalSites > 0) {
+          const pct = Math.min(100, Math.round((checkedCount / totalSites) * 100));
+          elements.progressBar.style.width = `${pct}%`;
+          elements.progressPercent.textContent = `${pct}%`;
+        }
+      }
+
+      await processNextBatch();
+    }
+
+    const workers = [];
+    for (let w = 0; w < CONCURRENCY; w++) {
+      workers.push(processNextBatch());
+    }
+    await Promise.all(workers);
+
+    if (state.cancelled) return;
+
+    // 4. Complete investigation
+    const elapsed = ((Date.now() - state.startedAt) / 1000).toFixed(2);
+    handleServerEvent({
+      type: "complete",
+      found: foundCount,
+      checked: checkedCount,
+      total: totalSites,
+      elapsed: elapsed,
+    });
 
   } catch (err) {
-    elements.error.textContent = `Network error: ${err.message}`;
+    elements.error.textContent = `Investigation error: ${err.message}`;
     setRunningState(false);
   }
 }
@@ -1822,13 +1949,14 @@ function initListeners() {
   });
 
   // Cancel Button
-  elements.cancel.addEventListener("click", async () => {
-    if (!state.sessionId) return;
-    try {
-      await fetch(`/api/cancel/${state.sessionId}`, { method: "POST" });
-      showToast("Cancellation requested…", "info");
-    } catch {
-      showToast("Error sending cancel request", "error");
+  elements.cancel.addEventListener("click", () => {
+    state.cancelled = true;
+    state.finished = true;
+    clearInterval(state.timer);
+    setRunningState(false);
+    handleServerEvent({ type: "cancelled" });
+    if (state.sessionId) {
+      fetch(`/api/cancel/${state.sessionId}`, { method: "POST" }).catch(() => {});
     }
   });
 
