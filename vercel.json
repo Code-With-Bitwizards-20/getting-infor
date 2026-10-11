@@ -1,33 +1,14 @@
 {
-  "version": 2,
   "functions": {
     "api/index.py": {
       "maxDuration": 60,
       "memory": 1024
     }
   },
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/style\\.css",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/app\\.js",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/favicon\\.svg",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "destination": "/api/index"
     }
   ]
 }
