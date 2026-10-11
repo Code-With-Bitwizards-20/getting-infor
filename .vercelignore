@@ -1,0 +1,7 @@
+exiftool-13.59_64/
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+.venv/
