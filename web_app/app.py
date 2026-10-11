@@ -82,6 +82,11 @@ except ImportError:
     )
     from pdf_generator import build_pdf_report  # type: ignore
 
+from sherlock_project.notify import QueryNotify
+from sherlock_project.result import QueryStatus
+from sherlock_project.sherlock import check_for_parameter, multiple_usernames, sherlock
+from sherlock_project.sites import SitesInformation
+
 logger = logging.getLogger(__name__)
 
 STATIC_ROOT = WEB_ROOT / "static"
@@ -288,70 +293,85 @@ def _run_worker(session_id: str, usernames: list[str], options: dict) -> None:
         except Exception as exc:
             logger.debug(f"ExifTool profile scan error for {site_name}: {exc}")
 
-    command = [
-        sys.executable,
-        str(WORKER_PATH),
-        "--timeout",
-        str(options["timeout"]),
-    ]
-    if options["nsfw"]:
-        command.append("--nsfw")
-    if options["proxy"]:
-        command.extend(["--proxy", options["proxy"]])
-    command.extend(["--", *usernames])
-
-    worker_emitted_terminal = False
     try:
-        process = subprocess.Popen(
-            command,
-            cwd=str(PROJECT_ROOT),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            bufsize=1,
-        )
-        session["process"] = process
+        sites = SitesInformation(str(DATA_PATH), honor_exclusions=False)
+        if not options.get("nsfw", False):
+            sites.remove_nsfw_sites()
+        site_data = {site.name: site.information.copy() for site in sites}
 
-        assert process.stdout is not None
-        for line in process.stdout:
-            if session["cancelled"]:
+        all_usernames = []
+        for username in usernames:
+            all_usernames.extend(multiple_usernames(username) if check_for_parameter(username) else [username])
+
+        total_checks = len(site_data) * len(all_usernames)
+
+        class WebNotifier(QueryNotify):
+            def __init__(self, total: int):
+                super().__init__()
+                self.total = total
+                self.checked = 0
+                self.found = 0
+
+            def start(self, username):
+                event_queue.put({"type": "username_start", "username": username})
+
+            def update(self, result):
+                super().update(result)
+                self.checked += 1
+                if result.status == QueryStatus.CLAIMED:
+                    self.found += 1
+                ev = {
+                    "type": "result",
+                    "username": result.username,
+                    "site": result.site_name,
+                    "url": result.site_url_user,
+                    "status": result.status.value.lower(),
+                    "response_time": round(result.query_time * 1000) if result.query_time is not None else None,
+                    "context": result.context,
+                    "checked": self.checked,
+                    "total": self.total,
+                    "found": self.found,
+                }
+                with sessions_lock:
+                    session["sherlock_results"].append(ev)
+                if result.status == QueryStatus.CLAIMED:
+                    t = osint_pool.submit(
+                        _process_claimed_profile,
+                        result.site_name,
+                        result.site_url_user,
+                        result.username,
+                    )
+                    pending_tasks.append(t)
+                event_queue.put(ev)
+
+        notifier = WebNotifier(total=total_checks)
+        started = time.monotonic()
+        event_queue.put({"type": "start", "usernames": all_usernames, "total": notifier.total, "sites": len(site_data)})
+
+        timeout_sec = min(int(options.get("timeout", 10)), 15)
+        for target_user in all_usernames:
+            if session.get("cancelled"):
                 break
-            try:
-                event = json.loads(line)
-                ev_type = event.get("type")
-
-                if ev_type == "result":
-                    with sessions_lock:
-                        session["sherlock_results"].append(event)
-                    # Trigger ExifTool scan for claimed profile
-                    if event.get("status") == "claimed":
-                        t = osint_pool.submit(
-                            _process_claimed_profile,
-                            event.get("site", ""),
-                            event.get("url", ""),
-                            event.get("username", ""),
-                        )
-                        pending_tasks.append(t)
-
-                if ev_type in {"complete", "error"}:
-                    worker_emitted_terminal = True
-                event_queue.put(event)
-            except json.JSONDecodeError:
-                event_queue.put({"type": "log", "level": "info", "message": line.strip()})
+            username_sites = {name: details.copy() for name, details in site_data.items()}
+            sherlock(target_user, username_sites, notifier, proxy=options.get("proxy") or None, timeout=timeout_sec)
 
         if session["cancelled"]:
             osint_pool.shutdown(wait=False, cancel_futures=True)
             event_queue.put({"type": "cancelled", "message": "Search cancelled"})
             return
 
-        process.wait()
+        event_queue.put({
+            "type": "complete",
+            "found": notifier.found,
+            "checked": notifier.checked,
+            "total": notifier.total,
+            "elapsed": round(time.monotonic() - started, 2),
+        })
 
         # Allow pending ExifTool / OSINT scans to wrap up gracefully
         for t in pending_tasks:
             try:
-                t.result(timeout=10)
+                t.result(timeout=5)
             except Exception:
                 pass
         osint_pool.shutdown(wait=True)
@@ -485,8 +505,57 @@ def start_search():
 def stream_results(session_id: str):
     with sessions_lock:
         session = search_sessions.get(session_id)
+
     if session is None:
-        return jsonify(error="Search session not found."), 404
+        raw_users = request.args.get("usernames", "")
+        usernames = _parse_usernames(raw_users)
+        if not usernames:
+            return jsonify(error="Search session not found."), 404
+
+        timeout = int(request.args.get("timeout", 10))
+        options = {
+            "timeout": max(2, min(timeout, 30)),
+            "nsfw": request.args.get("nsfw") == "1",
+            "proxy": request.args.get("proxy", "").strip(),
+            "scan_exif": request.args.get("scan_exif", "1") == "1",
+            "deep_osint": request.args.get("deep_osint", "1") == "1",
+            "max_images_per_site": int(request.args.get("max_images_per_site", 5)),
+        }
+        harvester_dir = Path(tempfile.gettempdir()) / f"sherlock_exif_{session_id}"
+        harvester_dir.mkdir(parents=True, exist_ok=True)
+        session = {
+            "queue": queue.Queue(),
+            "process": None,
+            "running": True,
+            "cancelled": False,
+            "terminal_event": False,
+            "created_at": time.monotonic(),
+            "usernames": usernames,
+            "options": options,
+            "sherlock_results": [],
+            "exif_results": [],
+            "github_data": None,
+            "gravatar_data": None,
+            "keybase_data": None,
+            "snapchat_data": None,
+            "instagram_data": None,
+            "phone_data": None,
+            "breach_data": None,
+            "dorks_data": [],
+            "socid_data": {},
+            "holehe_data": [],
+            "contacts": {"emails": [], "phones": []},
+            "risk_assessment": {"score": 0, "level": "LOW EXPOSURE", "color": "#22c55e", "summary": "Scan in progress"},
+            "harvester_dir": str(harvester_dir),
+        }
+        with sessions_lock:
+            search_sessions[session_id] = session
+
+        threading.Thread(
+            target=_run_worker,
+            args=(session_id, usernames, options),
+            daemon=True,
+        ).start()
 
     def generate():
         while True:

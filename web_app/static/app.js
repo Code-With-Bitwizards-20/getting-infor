@@ -1471,7 +1471,17 @@ function connectEventStream(sessionId) {
     state.source.close();
   }
 
-  const source = new EventSource(`/api/stream/${sessionId}`);
+  const queryParams = new URLSearchParams({
+    usernames: elements.input.value.trim(),
+    timeout: elements.timeout.value || "10",
+    proxy: elements.proxy.value.trim() || "",
+    nsfw: elements.nsfw.checked ? "1" : "0",
+    scan_exif: elements.scanExif.checked ? "1" : "0",
+    deep_osint: elements.deepOsint.checked ? "1" : "0",
+    max_images_per_site: elements.maxImages.value || "5",
+  });
+
+  const source = new EventSource(`/api/stream/${sessionId}?${queryParams.toString()}`);
   state.source = source;
 
   source.onmessage = (messageEvent) => {
@@ -1492,8 +1502,14 @@ function connectEventStream(sessionId) {
     if (!state.finished) {
       clearInterval(state.timer);
       setRunningState(false);
-      elements.caseStatusBadge.className = "case-status-badge finished";
-      elements.caseStatusText.textContent = "Completed";
+      if (state.results.length > 0) {
+        elements.caseStatusBadge.className = "case-status-badge finished";
+        elements.caseStatusText.textContent = "Completed";
+      } else {
+        elements.caseStatusBadge.className = "case-status-badge error";
+        elements.caseStatusText.textContent = "Disconnected";
+        elements.error.textContent = "Connection interrupted. You can retry with a shorter timeout or fewer platforms.";
+      }
     }
   };
 }
