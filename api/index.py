@@ -29,22 +29,9 @@ class VercelPathFixer:
         return self.wsgi_app(environ, start_response)
 
 
-try:
-    from web_app.app import app
-    app.wsgi_app = VercelPathFixer(app.wsgi_app)
-except Exception:
-    import traceback
-    err_text = traceback.format_exc()
-    from flask import Flask, Response
+# Import the Flask application instance directly at top-level for Vercel detection
+from web_app.app import app
 
-    app = Flask(__name__)
-
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
-    def error_fallback(path):
-        return Response(
-            f"Vercel Serverless Function Startup Error:\n\n{err_text}",
-            mimetype="text/plain",
-            status=500,
-        )
+# Apply WSGI middleware to handle path rewriting
+app.wsgi_app = VercelPathFixer(app.wsgi_app)
 
