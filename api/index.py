@@ -10,6 +10,9 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 
+from urllib.parse import parse_qs
+
+
 class VercelPathFixer:
     """WSGI middleware to correct PATH_INFO when Vercel rewrites to /api/index."""
 
@@ -17,13 +20,19 @@ class VercelPathFixer:
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
-        matched = environ.get("HTTP_X_MATCHED_PATH") or environ.get("REQUEST_URI") or ""
-        if matched:
-            clean = matched.split("?")[0]
+        query_string = environ.get("QUERY_STRING", "")
+        if "__path__=" in query_string:
+            params = parse_qs(query_string)
+            if "__path__" in params and params["__path__"]:
+                environ["PATH_INFO"] = params["__path__"][0]
+        elif environ.get("HTTP_X_FORWARDED_URI"):
+            clean = environ["HTTP_X_FORWARDED_URI"].split("?")[0]
             if clean and clean != "/api/index":
                 environ["PATH_INFO"] = clean
-            elif clean in ("/api/index", ""):
-                environ["PATH_INFO"] = "/"
+        elif environ.get("REQUEST_URI"):
+            clean = environ["REQUEST_URI"].split("?")[0]
+            if clean and clean != "/api/index":
+                environ["PATH_INFO"] = clean
         elif environ.get("PATH_INFO") == "/api/index":
             environ["PATH_INFO"] = "/"
         return self.wsgi_app(environ, start_response)

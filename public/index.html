@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Sherlock OSINT & ExifTool Forensics — Automated public username footprint analysis, image metadata extraction, GPS coordinate mapping, and downloadable PDF intelligence reports.">
+  <meta name="theme-color" content="#07090e">
+  <title>Sherlock OSINT & ExifTool Forensics — Digital Identity Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-workspace">Skip to search</a>
+
+  <!-- Ambient Ambient Glow Background -->
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="ambient-grid"></div>
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+    <div class="ambient-orb ambient-orb-3"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="11" y1="8" x2="11" y2="14"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <span class="brand-name">
+            SHERLOCK
+            <span class="brand-tag">OSINT + FORENSICS</span>
+          </span>
+          <span class="brand-desc">Footprint Reconnaissance & ExifTool Engine</span>
+        </div>
+      </div>
+
+      <nav class="topbar-nav" aria-label="System status and actions">
+        <div class="server-status-pill" title="Local Sherlock Engine">
+          <span id="server-dot" class="status-dot"></span>
+          <span id="server-label">Connecting</span>
+        </div>
+
+        <div class="exif-status-pill" id="exiftool-pill" title="ExifTool Binary Status">
+          <span class="exif-icon">📷</span>
+          <span id="exif-label">ExifTool Ready</span>
+        </div>
+
+        <button id="header-framework-btn" class="nav-btn nav-btn-framework" type="button" title="Explore 50+ OSINT Tools Directory">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+          <span class="nav-btn-text">OSINT Framework</span>
+        </button>
+
+        <a class="nav-btn" href="https://sherlockproject.xyz/usage" target="_blank" rel="noreferrer" title="Official Guide & Documentation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          <span class="nav-btn-text">Docs</span>
+        </a>
+
+        <a class="nav-btn" href="https://github.com/Code-With-Bitwizards-20" target="_blank" rel="noreferrer" title="Code With Bitwizards on GitHub">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.2.8-.6v-2.2c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.4 11.4 0 0 0 12 .8Z"/>
+          </svg>
+          <span class="nav-btn-text">GitHub</span>
+        </a>
+
+        <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="Toggle dark/light theme" title="Toggle Theme">
+          <svg id="theme-icon-sun" class="sr-only" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Application Workspace -->
+  <main id="main-workspace" class="app-shell">
+    
+    <!-- Hero / Headline Section -->
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="hero-pill">
+        <span class="hero-pill-indicator"></span>
+        <span>Concurrent OSINT Engine + ExifTool Forensics</span>
+        <span id="network-count" class="hero-network-count">400+ platforms</span>
+      </div>
+      <h1 id="hero-title" class="hero-title">
+        Trace Digital Footprints<br>
+        <span class="hero-title-gradient">&amp; Audit Forensic Image Metadata</span>
+      </h1>
+      <p class="hero-subtitle">
+        Investigate aliases and usernames across hundreds of public networks. Confirmed profiles are instantly scraped for profile avatars and gallery photos to extract camera hardware, creation timestamps, and GPS geolocation via ExifTool. Download the complete dossier as an executive PDF report.
+      </p>
+    </section>
+
+    <!-- Search Panel Card -->
+    <section class="search-card" aria-labelledby="search-heading">
+      <form id="search-form" class="search-form" novalidate>
+        
+        <div class="input-label-row">
+          <label class="input-label" for="username-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Target Handle / Aliases
+          </label>
+          <span class="input-badge">Up to 8 targets</span>
+        </div>
+
+        <div class="search-input-box">
+          <span class="input-prefix-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+          <input 
+            id="username-input" 
+            name="usernames" 
+            type="text" 
+            autocomplete="off" 
+            autocorrect="off" 
+            spellcheck="false" 
+            placeholder="Enter username (e.g. satoshi, torvalds, vitalik)..." 
+            maxlength="800"
+            aria-describedby="form-error"
+          >
+          <button id="search-clear-btn" class="search-clear-btn" type="button" aria-label="Clear input" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <button id="search-button" class="search-submit-btn" type="submit">
+            <span>Launch Investigation</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Presets and Options Row -->
+        <div class="search-controls-row">
+          <div class="presets-container">
+            <span class="presets-label">Quick Samples:</span>
+            <div class="presets-scroll">
+              <button class="preset-chip" type="button" data-preset="satoshi">@satoshi</button>
+              <button class="preset-chip" type="button" data-preset="torvalds">@torvalds</button>
+              <button class="preset-chip" type="button" data-preset="vitalik">@vitalik</button>
+              <button class="preset-chip" type="button" data-preset="notch">@notch</button>
+              <button class="preset-chip preset-chip-framework" type="button" id="quick-framework-chip" style="background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.35); color: #38bdf8;">🌐 OSINT Directory (50+ Tools)</button>
+            </div>
+          </div>
+
+          <button id="advanced-toggle" class="options-toggle-btn" type="button" aria-expanded="false" aria-controls="advanced-options">
+            <span>Investigation Settings</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </div>
+
+        <p class="form-error-msg" id="form-error" role="alert"></p>
+
+        <!-- Collapsible Advanced Drawer -->
+        <div class="advanced-drawer" id="advanced-options" hidden>
+          <div class="drawer-grid">
+            <div class="drawer-field">
+              <label class="drawer-field-label" for="timeout-input">
+                <span>Site Timeout</span>
+                <span id="timeout-val">20s</span>
+              </label>
+              <div class="drawer-input-wrap">
+                <input id="timeout-input" type="number" min="2" max="120" value="20">
+                <span class="drawer-input-unit">sec</span>
+              </div>
+            </div>
+
+            <div class="drawer-field">
+              <label class="drawer-field-label" for="max-images-input">
+                <span>Max Images Per Profile</span>
+                <span id="images-val">5 images</span>
+              </label>
+              <div class="drawer-input-wrap">
+                <input id="max-images-input" type="number" min="1" max="10" value="5">
+                <span class="drawer-input-unit">pics</span>
+              </div>
+            </div>
+
+            <div class="drawer-field full-width">
+              <label class="drawer-field-label" for="proxy-input">
+                <span>Proxy URL (Optional)</span>
+                <span>socks5 / http</span>
+              </label>
+              <div class="drawer-input-wrap">
+                <input id="proxy-input" class="drawer-input" type="url" placeholder="e.g. socks5://127.0.0.1:1080">
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-toggles-row">
+            <label class="custom-toggle-label">
+              <input id="exif-input" type="checkbox" class="sr-only" checked>
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Scan Images with ExifTool</span>
+            </label>
+
+            <label class="custom-toggle-label">
+              <input id="deep-osint-input" type="checkbox" class="sr-only" checked>
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Deep OSINT Harvester (GitHub / Gravatar)</span>
+            </label>
+
+            <label class="custom-toggle-label">
+              <input id="nsfw-input" type="checkbox" class="sr-only">
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Scan NSFW Platforms</span>
+            </label>
+          </div>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- Active Investigation Dashboard (Live Case Panel) -->
+    <section class="investigation-panel" id="case-panel" hidden aria-live="polite">
+      
+      <!-- Panel Header -->
+      <div class="case-header">
+        <div class="case-header-left">
+          <div class="case-meta-group">
+            <span class="case-id-badge" id="case-id">#CASE-INIT</span>
+            <span class="case-status-badge scanning" id="case-status-badge">
+              <span class="status-dot online"></span>
+              <span id="case-status-text">Scanning Active</span>
+            </span>
+          </div>
+          <h2 class="case-title" id="case-title">Investigating Targets</h2>
+          <p class="case-subtitle" id="case-subtitle">Querying public registers and platforms…</p>
+        </div>
+
+        <div class="case-actions-group">
+          <!-- Primary PDF Download Action -->
+          <button class="action-btn action-btn-pdf" id="download-pdf-btn" type="button" title="Download Full OSINT &amp; ExifTool Forensic PDF Report" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            <span>Download PDF Report</span>
+          </button>
+
+          <button class="action-btn" id="export-json-button" type="button" title="Export entire raw dataset as JSON" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <span>Export JSON</span>
+          </button>
+
+          <button class="action-btn" id="copy-all-button" type="button" title="Copy all found profile links to clipboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>Copy Links</span>
+          </button>
+
+          <button class="action-btn action-btn-danger" id="cancel-button" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <span>Stop Scan</span>
+          </button>
+
+          <button class="action-btn action-btn-primary" id="new-search-button" type="button" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>New Search</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Progress Track -->
+      <div class="progress-container">
+        <div class="progress-header">
+          <span>Search &amp; Forensic Probing Progress</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-track" aria-label="Progress bar">
+          <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+      </div>
+
+      <!-- Live Metrics Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card found">
+          <div class="metric-top">
+            <span class="metric-label">Confirmed Profiles</span>
+            <span class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </span>
+          </div>
+          <strong class="metric-value" id="found-count">0</strong>
+          <span class="metric-sub">Matches Found</span>
+        </div>
+
+        <div class="metric-card exif">
+          <div class="metric-top">
+            <span class="metric-label">ExifTool Photos</span>
+            <span class="metric-icon">📷</span>
+          </div>
+          <strong class="metric-value" id="exif-count">0</strong>
+          <span class="metric-sub" id="gps-badge-count">0 GPS Geotags</span>
+        </div>
+
+        <div class="metric-card checked">
+          <div class="metric-top">
+            <span class="metric-label">Networks Checked</span>
+            <span class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </span>
+          </div>
+          <strong class="metric-value" id="checked-count">0</strong>
+          <span class="metric-sub" id="total-count">of — platforms</span>
+        </div>
+
+        <div class="metric-card risk" id="metric-risk-card">
+          <div class="metric-top">
+            <span class="metric-label">Exposure Score</span>
+            <span class="metric-icon">🛡️</span>
+          </div>
+          <strong class="metric-value" id="exposure-score">0</strong>
+          <span class="metric-sub" id="exposure-level">LOW EXPOSURE</span>
+        </div>
+
+        <div class="metric-card time">
+          <div class="metric-top">
+            <span class="metric-label">Duration</span>
+            <span class="metric-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+          </div>
+          <strong class="metric-value" id="elapsed-time">00:00</strong>
+          <span class="metric-sub">Elapsed Time</span>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs: Profiles, ExifTool Forensics, Deep OSINT, Dossier -->
+      <div class="view-tabs-container" role="tablist" aria-label="Investigation view tabs">
+        <button class="view-tab active" data-view="profiles" role="tab" aria-selected="true" id="tab-profiles">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span>Social Profiles</span>
+          <span class="tab-badge" id="tab-profiles-count">0</span>
+        </button>
+
+        <button class="view-tab" data-view="exif" role="tab" aria-selected="false" id="tab-exif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span>ExifTool Forensics</span>
+          <span class="tab-badge" id="tab-exif-count">0</span>
+        </button>
+
+        <button class="view-tab" data-view="deep-osint" role="tab" aria-selected="false" id="tab-osint">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/>
+            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+          </svg>
+          <span>Deep OSINT</span>
+          <span class="tab-badge" id="tab-deep-count">0</span>
+        </button>
+
+        <button class="view-tab" data-view="map" role="tab" aria-selected="false" id="tab-map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6" cy="6" r="3"/>
+            <circle cx="18" cy="6" r="3"/>
+            <circle cx="6" cy="18" r="3"/>
+            <circle cx="18" cy="18" r="3"/>
+            <line x1="8.5" y1="7.5" x2="15.5" y2="16.5"/>
+            <line x1="8.5" y1="16.5" x2="15.5" y2="7.5"/>
+          </svg>
+          <span>OSINT Node Map</span>
+        </button>
+
+        <button class="view-tab" data-view="framework" role="tab" aria-selected="false" id="tab-framework">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+          <span>OSINT Framework</span>
+        </button>
+
+        <button class="view-tab" data-view="dossier" role="tab" aria-selected="false" id="tab-dossier">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <span>Intelligence Dossier</span>
+        </button>
+      </div>
+
+      <!-- VIEW 1: Profiles List View -->
+      <div id="view-profiles-container" class="view-section">
+        <!-- Results Toolbar (Filtering & Sorting) -->
+        <div class="results-toolbar">
+          <div class="filter-tabs" role="tablist" aria-label="Result status filters">
+            <button class="filter-tab active" data-filter="found" role="tab" aria-selected="true">
+              <span>Found Matches</span>
+              <span class="tab-count" id="found-tab-count">0</span>
+            </button>
+            <button class="filter-tab" data-filter="all" role="tab" aria-selected="false">
+              <span>All Checked</span>
+              <span class="tab-count" id="all-tab-count">0</span>
+            </button>
+            <button class="filter-tab" data-filter="issues" role="tab" aria-selected="false">
+              <span>Errors / Blocked</span>
+              <span class="tab-count" id="issues-tab-count">0</span>
+            </button>
+          </div>
+
+          <div class="toolbar-controls">
+            <div class="search-filter-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input id="result-filter" class="search-filter-input" type="search" placeholder="Filter site or URL...">
+            </div>
+
+            <select id="sort-select" class="sort-select" aria-label="Sort results">
+              <option value="default">Default Order</option>
+              <option value="alpha">Site Name (A-Z)</option>
+              <option value="fastest">Fastest Response</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Results Grid Container (Sherlock cards with direct clickable links) -->
+        <div id="result-list" class="result-list-grid"></div>
+
+        <!-- Empty / Radar Scanning Indicator -->
+        <div id="empty-results" class="empty-state-card">
+          <div class="radar-scope" aria-hidden="true">
+            <div class="radar-sweep"></div>
+          </div>
+          <h3 class="empty-state-title">Listening For Digital Signals</h3>
+          <p class="empty-state-desc">Live profile detections and ExifTool forensic metadata will stream into this console as they are discovered.</p>
+        </div>
+      </div>
+
+      <!-- VIEW 2: ExifTool Forensics View -->
+      <div id="view-exif-container" class="view-section" hidden>
+        <div class="exif-view-header">
+          <div>
+            <h3 class="view-heading">ExifTool Forensic Image Metadata Inspection</h3>
+            <p class="view-subheading">Scanned profile avatars and up to 5 profile images. Includes camera models, timestamps, software signatures, and GPS coordinates.</p>
+          </div>
+          <div class="exif-view-filters">
+            <button class="exif-filter-btn active" data-exif-filter="all">All Photos (<span id="exif-filter-all-count">0</span>)</button>
+            <button class="exif-filter-btn" data-exif-filter="gps">Has GPS Location (<span id="exif-filter-gps-count">0</span>)</button>
+            <button class="exif-filter-btn" data-exif-filter="camera">Identified Camera (<span id="exif-filter-camera-count">0</span>)</button>
+          </div>
+        </div>
+
+        <div id="exif-grid" class="exif-grid"></div>
+        <div id="empty-exif" class="empty-state-card" hidden>
+          <div class="empty-icon">📷</div>
+          <h4 class="empty-state-title">No ExifTool Data Yet</h4>
+          <p class="empty-state-desc">Images will appear here as claimed profiles are scraped and analyzed by ExifTool.</p>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Deep OSINT & Correlation View -->
+      <div id="view-deep-osint-container" class="view-section" hidden>
+        <div class="deep-osint-grid">
+          <!-- GitHub Card -->
+          <div class="osint-panel-card" id="card-github-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">🐙</span>
+              <div>
+                <h4 class="panel-card-title">GitHub Deep Identity Audit</h4>
+                <span class="panel-card-subtitle">Developer keys, public events &amp; commit emails</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="github-osint-content">
+              <p class="panel-card-empty">No GitHub intelligence available yet for this handle.</p>
+            </div>
+          </div>
+
+          <!-- Gravatar Card -->
+          <div class="osint-panel-card" id="card-gravatar-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">🌐</span>
+              <div>
+                <h4 class="panel-card-title">Gravatar Identity Prober</h4>
+                <span class="panel-card-subtitle">Verified linked accounts &amp; profile records</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="gravatar-osint-content">
+              <p class="panel-card-empty">No Gravatar profile linked to this username.</p>
+            </div>
+          </div>
+
+          <!-- Keybase Cryptographic Identity Card -->
+          <div class="osint-panel-card" id="card-keybase-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">🔑</span>
+              <div>
+                <h4 class="panel-card-title">Keybase Cryptographic Proofs</h4>
+                <span class="panel-card-subtitle">Verified platform links, PGP keys &amp; crypto addresses</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="keybase-osint-content">
+              <p class="panel-card-empty">No Keybase identity records found for this username.</p>
+            </div>
+          </div>
+
+          <!-- SnapIntel: Snapchat Public Intelligence -->
+          <div class="osint-panel-card" id="card-snapchat-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">👻</span>
+              <div>
+                <h4 class="panel-card-title">SnapIntel (Snapchat Forensics)</h4>
+                <span class="panel-card-subtitle">Bitmoji 3D avatar, Snapcode &amp; display details</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="snapchat-osint-content">
+              <p class="panel-card-empty">Querying Snapchat public registry…</p>
+            </div>
+          </div>
+
+          <!-- Holehe: Email Account Registrations -->
+          <div class="osint-panel-card" id="card-holehe-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">⚡</span>
+              <div>
+                <h4 class="panel-card-title">Holehe (120+ Platform Email Footprint)</h4>
+                <span class="panel-card-subtitle">Verifies if target email is registered on major platforms</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="holehe-osint-content">
+              <p class="panel-card-empty">Harvesting emails to probe registered accounts…</p>
+            </div>
+          </div>
+
+          <!-- Contact & Identifier Harvester -->
+          <div class="osint-panel-card" id="card-contacts-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">📬</span>
+              <div>
+                <h4 class="panel-card-title">Harvested Contacts &amp; Identifiers</h4>
+                <span class="panel-card-subtitle">Emails, phone numbers &amp; crypto addresses</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="contacts-osint-content">
+              <p class="panel-card-empty">Scanning profiles for contact details…</p>
+            </div>
+          </div>
+
+          <!-- Avatar Reuse Correlation -->
+          <div class="osint-panel-card" id="card-correlations-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">🔍</span>
+              <div>
+                <h4 class="panel-card-title">Avatar Image Reuse Correlation</h4>
+                <span class="panel-card-subtitle">Cross-platform accounts sharing identical photo hashes</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="correlations-osint-content">
+              <p class="panel-card-empty">Analyzing avatar hashes across claimed platforms…</p>
+            </div>
+          </div>
+
+          <!-- Toutatis / Osintgram / SoIG: Instagram Forensics -->
+          <div class="osint-panel-card" id="card-instagram-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">📸</span>
+              <div>
+                <h4 class="panel-card-title">Instagram Deep Recon (Toutatis / Osintgram)</h4>
+                <span class="panel-card-subtitle">Profile ID, phone/email contact hints, bio &amp; follower counts</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="instagram-osint-content">
+              <p class="panel-card-empty">Awaiting Instagram profile target…</p>
+            </div>
+          </div>
+
+          <!-- socid_extractor: Cross-Platform Account IDs -->
+          <div class="osint-panel-card" id="card-socid-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">🆔</span>
+              <div>
+                <h4 class="panel-card-title">socid_extractor (Account &amp; User IDs)</h4>
+                <span class="panel-card-subtitle">Extracts internal user IDs from Reddit, Medium &amp; 50+ platforms</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="socid-osint-content">
+              <p class="panel-card-empty">Extracting user IDs from claimed platform responses…</p>
+            </div>
+          </div>
+
+          <!-- PhoneInfoga: Telecom & Carrier Recon -->
+          <div class="osint-panel-card" id="card-phone-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">📞</span>
+              <div>
+                <h4 class="panel-card-title">PhoneInfoga (Telecom Recon)</h4>
+                <span class="panel-card-subtitle">Carrier, region, line type, VoIP indicators &amp; direct messaging</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="phone-osint-content">
+              <p class="panel-card-empty">No phone number identified from metadata or profiles yet.</p>
+            </div>
+          </div>
+
+          <!-- Have I Been Pwned & Breach Intelligence -->
+          <div class="osint-panel-card" id="card-breach-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">⚠️</span>
+              <div>
+                <h4 class="panel-card-title">HIBP &amp; Breach Exposure Intelligence</h4>
+                <span class="panel-card-subtitle">Checks emails against breach databases, pastes &amp; credential leaks</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="breach-osint-content">
+              <p class="panel-card-empty">Awaiting email discovery to cross-reference known breach databases…</p>
+            </div>
+          </div>
+
+          <!-- Google Dorks & SiteDorks Reconnaissance -->
+          <div class="osint-panel-card" id="card-dorks-osint">
+            <div class="panel-card-header">
+              <span class="panel-card-icon">🎯</span>
+              <div>
+                <h4 class="panel-card-title">Automated Google Dorks &amp; SiteDorks</h4>
+                <span class="panel-card-subtitle">One-click queries for document leaks, pastebins, cloud storage &amp; code</span>
+              </div>
+            </div>
+            <div class="panel-card-body" id="dorks-osint-content">
+              <p class="panel-card-empty">Generating targeted OSINT search dorks…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: OSINT Node & Entity Map View -->
+      <div id="view-map-container" class="view-section" hidden>
+        <div class="osint-map-card">
+          <div class="map-card-header">
+            <div>
+              <h3 class="view-heading">Interactive OSINT Entity &amp; Node Topology</h3>
+              <p class="view-subheading">Visual correlation network connecting target handle, social accounts, ExifTool photos, GPS coordinates, emails, and cryptographic proofs.</p>
+            </div>
+            <div class="map-controls">
+              <button id="map-reset-btn" class="action-btn" type="button">Reset View</button>
+            </div>
+          </div>
+          <div class="map-canvas-wrapper">
+            <canvas id="osint-network-canvas" width="1000" height="520"></canvas>
+            <div id="map-node-tooltip" class="map-tooltip" hidden></div>
+          </div>
+          <div class="map-legend">
+            <span class="legend-item"><span class="legend-dot dot-target"></span> Target</span>
+            <span class="legend-item"><span class="legend-dot dot-profile"></span> Profile</span>
+            <span class="legend-item"><span class="legend-dot dot-image"></span> ExifTool Media</span>
+            <span class="legend-item"><span class="legend-dot dot-location"></span> GPS Geotag</span>
+            <span class="legend-item"><span class="legend-dot dot-hardware"></span> Camera Hardware</span>
+            <span class="legend-item"><span class="legend-dot dot-email"></span> Email / Phone</span>
+            <span class="legend-item"><span class="legend-dot dot-crypto"></span> Keybase Proof</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: OSINT Framework & Windows Tools Directory View -->
+      <div id="view-framework-container" class="view-section" hidden>
+        <div class="framework-card">
+          <div class="framework-header">
+            <div>
+              <span class="section-tag">OPEN SOURCE ECOSYSTEM</span>
+              <h3 class="view-heading">Curated OSINT Framework &amp; Windows Tool Directory</h3>
+              <p class="view-subheading">Comprehensive directory of 50+ leading open-source intelligence tools for social media extraction, network recon, telecom lookup, breach discovery, and visual forensics.</p>
+            </div>
+            <div class="framework-search-wrapper">
+              <span class="framework-search-icon" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </span>
+              <input type="text" id="framework-search-input" class="framework-search-input" placeholder="Filter tools by name, tag (e.g. instagram, email, windows)...">
+            </div>
+          </div>
+
+          <div id="framework-categories-container" class="framework-categories-grid">
+            <div class="framework-loading-state">
+              <div class="spinner-small"></div>
+              <span>Loading OSINT Framework database…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 6: Dossier & Executive Summary View -->
+      <div id="view-dossier-container" class="view-section" hidden>
+        <div class="dossier-card">
+          <!-- Dossier Header & Banner -->
+          <div class="dossier-banner">
+            <div class="dossier-header-left">
+              <span class="dossier-tag">OFFICIAL INTELLIGENCE DOSSIER</span>
+              <h3 class="dossier-title">Case Intelligence &amp; Executive Dossier</h3>
+              <p class="dossier-subtitle">Audit-ready investigation report aggregating confirmed social footprints, ExifTool camera forensics, geolocation geotags, and deep OSINT identity findings.</p>
+              
+              <div class="dossier-meta-chips">
+                <span class="dossier-chip" id="dossier-target-chip">Target: <strong id="dossier-target-name">—</strong></span>
+                <span class="dossier-chip" id="dossier-date-chip">Date: <strong id="dossier-date-val">—</strong></span>
+                <span class="dossier-chip" id="dossier-risk-chip">Risk: <strong id="dossier-risk-val">Scanning</strong></span>
+              </div>
+            </div>
+
+            <div class="dossier-actions-group">
+              <button class="dossier-cta-btn primary" id="dossier-pdf-btn" type="button" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <span>Download PDF Dossier</span>
+              </button>
+
+              <button class="dossier-cta-btn secondary" id="dossier-export-json-btn" type="button" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export Raw JSON</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dossier KPI Breakdown Grid -->
+          <div class="dossier-breakdown-grid">
+            <div class="dossier-metric-box">
+              <span class="dossier-metric-icon">👤</span>
+              <span class="dossier-metric-num" id="dossier-claimed-num">0</span>
+              <span class="dossier-metric-label">Confirmed Profiles</span>
+            </div>
+            <div class="dossier-metric-box">
+              <span class="dossier-metric-icon">📷</span>
+              <span class="dossier-metric-num" id="dossier-images-num">0</span>
+              <span class="dossier-metric-label">Photos Analyzed</span>
+            </div>
+            <div class="dossier-metric-box">
+              <span class="dossier-metric-icon">📍</span>
+              <span class="dossier-metric-num" id="dossier-gps-num">0</span>
+              <span class="dossier-metric-label">GPS Geotag Leaks</span>
+            </div>
+            <div class="dossier-metric-box">
+              <span class="dossier-metric-icon">🛡️</span>
+              <span class="dossier-metric-num" id="dossier-exposure-num">0/100</span>
+              <span class="dossier-metric-label">Exposure Score</span>
+            </div>
+          </div>
+
+          <!-- Discovered Profiles Roster Table -->
+          <div class="dossier-section-block">
+            <div class="dossier-section-header">
+              <h4 class="dossier-section-heading">Confirmed Target Identity Profiles</h4>
+              <span class="dossier-section-badge" id="dossier-table-count">0 Detected</span>
+            </div>
+
+            <div class="dossier-table-wrap">
+              <table class="dossier-table" id="dossier-profiles-table">
+                <thead>
+                  <tr>
+                    <th>Platform</th>
+                    <th>Username</th>
+                    <th>Direct Profile URL</th>
+                    <th>Latency</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dossier-profiles-tbody">
+                  <tr>
+                    <td colspan="5" class="dossier-empty-row">No confirmed profiles identified yet. Launch an investigation to compile dossier records.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Report Specification & Highlights -->
+          <div class="dossier-report-preview">
+            <h4 class="preview-heading">What is included in the Official PDF Dossier:</h4>
+            <ul class="preview-list">
+              <li><strong>Clickable Profile Directory:</strong> Every discovered social account features a direct, clickable hyperlink to open the profile.</li>
+              <li><strong>ExifTool Forensics Table:</strong> Camera hardware, software build, image dimensions, capture timestamps, and MD5 file hashes.</li>
+              <li><strong>GPS Coordinates with Google Maps:</strong> Any photo with embedded geotagging includes exact latitude/longitude coordinates linking to Google Maps.</li>
+              <li><strong>Deep OSINT Extraction:</strong> GitHub commit author emails, PGP/SSH public keys, Gravatar identity records, and harvested contacts.</li>
+              <li><strong>OPSEC Remediation Checklist:</strong> Actionable guidelines for personal cybersecurity and digital privacy hygiene.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Raw EXIF Tags Modal -->
+    <div id="exif-modal" class="modal-backdrop" hidden>
+      <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <h3 class="modal-title" id="modal-title">Raw ExifTool Metadata Tags</h3>
+            <span class="modal-subtitle" id="modal-subtitle">image</span>
+          </div>
+          <button id="modal-close-btn" class="modal-close-btn" type="button" aria-label="Close modal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-actions-bar">
+            <button id="modal-copy-json" class="action-btn" type="button">Copy JSON</button>
+            <a id="modal-img-link" class="action-btn action-btn-link" href="#" target="_blank" rel="noreferrer">Open Original Image ↗</a>
+          </div>
+          <div id="modal-tags-container" class="modal-tags-table-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How Sherlock & ExifTool Works Section -->
+    <section class="how-it-works-section" id="how-it-works">
+      <div class="section-tag">System Architecture</div>
+      <h2 class="section-heading">How Digital Reconnaissance &amp; Forensics Works</h2>
+      <p class="section-desc">Sherlock probes public platforms while ExifTool extracts hardware, camera, timestamp, and GPS geolocation metadata from discovered media without requiring user credentials.</p>
+
+      <div class="steps-grid">
+        <article class="step-card">
+          <span class="step-number">STEP 01</span>
+          <h3 class="step-title">Identity Querying</h3>
+          <p class="step-text">Target usernames are parsed and probed concurrently across hundreds of verified platforms in Sherlock's database.</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">STEP 02</span>
+          <h3 class="step-title">ExifTool Image Extraction</h3>
+          <p class="step-text">When a profile is confirmed, its avatar and top 5 photos are scraped and analyzed via ExifTool for camera tags, timestamps, and GPS geotags.</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">STEP 03</span>
+          <h3 class="step-title">Deep OSINT &amp; Identity Correlation</h3>
+          <p class="step-text">GitHub commit emails, public SSH keys, Gravatar linked accounts, and avatar MD5 hash matching tie profiles together.</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">STEP 04</span>
+          <h3 class="step-title">Executive PDF Dossier</h3>
+          <p class="step-text">A multi-page, executive intelligence report with clickable profile and Google Maps links is generated on demand for download.</p>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <strong>Sherlock OSINT &amp; ExifTool Forensics Console</strong>
+        <span class="footer-tagline">Built by <a href="https://code-with-bitwizards.vercel.app/" target="_blank" rel="noreferrer" class="footer-brand-link">Code With Bitwizards</a> &bull; Local-first intelligence engine</span>
+      </div>
+
+      <!-- Social & Professional Links -->
+      <div class="footer-social-grid">
+        <!-- Professional -->
+        <div class="footer-social-group">
+          <span class="footer-group-label">Professional</span>
+          <div class="footer-social-links">
+            <a href="https://www.linkedin.com/in/codewithbitwizards1000" target="_blank" rel="noreferrer" class="footer-social-btn" title="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              <span>LinkedIn</span>
+            </a>
+            <a href="https://github.com/Code-With-Bitwizards-20" target="_blank" rel="noreferrer" class="footer-social-btn" title="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.2.8-.6v-2.2c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.4 11.4 0 0 0 12 .8Z"/></svg>
+              <span>GitHub</span>
+            </a>
+            <a href="https://www.fiverr.com/s/BRjgpyb" target="_blank" rel="noreferrer" class="footer-social-btn footer-social-btn--fiverr" title="Fiverr">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M23.004 15.588a.995.995 0 1 0 .002-1.99.995.995 0 0 0-.002 1.99zm-.996-3.705h-1.63c.001-.39-.078-.76-.22-1.1a2.67 2.67 0 0 0-.61-.878 2.8 2.8 0 0 0-.924-.583 3.17 3.17 0 0 0-1.164-.207 3.22 3.22 0 0 0-1.164.207c-.348.138-.654.333-.912.583a2.67 2.67 0 0 0-.61.878 2.78 2.78 0 0 0-.22 1.1H13.9v-1.1h-1.824v5.808h1.998V13.89h1.63a3.2 3.2 0 0 0 .22 1.1 2.67 2.67 0 0 0 .61.878c.258.25.564.445.912.583.36.138.748.207 1.164.207s.804-.069 1.164-.207a2.8 2.8 0 0 0 .924-.583 2.67 2.67 0 0 0 .61-.878 2.78 2.78 0 0 0 .22-1.1v-.007zM9.19 9.87H7.145V8.104H5.148V9.87H4v1.624h1.148v3.228c0 .45.07.83.207 1.14.138.31.328.56.57.752.242.192.53.332.862.42.333.088.694.133 1.083.133h1.32v-1.697H8.02c-.248 0-.437-.056-.567-.167-.13-.111-.193-.295-.193-.55V11.49H9.19V9.87zm-5.984 0H1.202v5.812H3.2V9.872h.006z"/></svg>
+              <span>Fiverr</span>
+            </a>
+            <a href="https://www.upwork.com/freelancers/~01b261308dace9725e?mp_source=share" target="_blank" rel="noreferrer" class="footer-social-btn footer-social-btn--upwork" title="Upwork">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.561 13.158c-1.102 0-2.135-.467-3.074-1.227l.228-1.076.008-.042c.207-1.143.849-3.06 2.839-3.06 1.492 0 2.703 1.212 2.703 2.703-.001 1.489-1.212 2.702-2.704 2.702zm0-8.14c-2.539 0-4.51 1.649-5.31 4.366-1.22-1.834-2.148-4.036-2.687-5.892H7.828v7.112c-.002 1.406-1.141 2.546-2.547 2.546-1.405 0-2.543-1.14-2.545-2.546V3.492H0v7.112c0 2.914 2.37 5.303 5.281 5.303 2.913 0 5.283-2.389 5.283-5.303v-1.19c.529 1.107 1.182 2.229 1.974 3.221l-1.673 7.873h2.797l1.213-5.71c1.063.679 2.285 1.109 3.686 1.109 3 0 5.439-2.452 5.439-5.45 0-3-2.439-5.439-5.439-5.439z"/></svg>
+              <span>Upwork</span>
+            </a>
+            <a href="https://contra.com/codewithbitwizards" target="_blank" rel="noreferrer" class="footer-social-btn" title="Contra">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm-1-5h2v2h-2zm0-8h2v6h-2z"/></svg>
+              <span>Contra</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="footer-social-group">
+          <span class="footer-group-label">Social Media</span>
+          <div class="footer-social-links">
+            <a href="https://youtube.com/@codewithbitwizards?si=9ZcSsUuvV8Z5-592" target="_blank" rel="noreferrer" class="footer-social-btn footer-social-btn--youtube" title="YouTube">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              <span>YouTube</span>
+            </a>
+            <a href="https://www.instagram.com/codewithbitwizards?igsh=MWR1OGk0dGZyM2VtbQ==" target="_blank" rel="noreferrer" class="footer-social-btn footer-social-btn--instagram" title="Instagram">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+              <span>Instagram</span>
+            </a>
+            <a href="https://x.com/With_Biwizards?t=0_duY1hlkauoAJ8_M6swUQ&s=09" target="_blank" rel="noreferrer" class="footer-social-btn" title="Twitter / X">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <span>X / Twitter</span>
+            </a>
+            <a href="https://www.facebook.com/share/1BkgnvmquR/" target="_blank" rel="noreferrer" class="footer-social-btn footer-social-btn--facebook" title="Facebook">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              <span>Facebook</span>
+            </a>
+            <a href="https://www.threads.net/@codewithbitwizards" target="_blank" rel="noreferrer" class="footer-social-btn" title="Threads">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.028-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.397-.904-1.026.01-1.888.364-2.565 1.055l-1.42-1.517c1.007-1.004 2.31-1.537 3.992-1.569 1.809.032 3.263.577 4.359 1.818.929 1.048 1.448 2.57 1.637 4.627.056.598.079 1.163.067 1.691.002.071.003.142.003.213 0 2.166-.752 3.967-2.173 5.207-1.418 1.238-3.415 1.902-5.98 1.928z"/></svg>
+              <span>Threads</span>
+            </a>
+            <a href="https://www.tiktok.com/@codewithbitwizards" target="_blank" rel="noreferrer" class="footer-social-btn" title="TikTok">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+              <span>TikTok</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="footer-social-group">
+          <span class="footer-group-label">Contact</span>
+          <div class="footer-social-links">
+            <a href="https://wa.me/message/CKZZ336X5UN3K1" target="_blank" rel="noreferrer" class="footer-social-btn footer-social-btn--whatsapp" title="WhatsApp">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              <span>WhatsApp</span>
+            </a>
+            <a href="mailto:codewithbitwizards@gmail.com" class="footer-social-btn footer-social-btn--email" title="Email">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>Email</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="footer-bottom">
+        <div class="footer-links">
+          <a href="https://github.com/sherlock-project/sherlock/blob/master/LICENSE" target="_blank" rel="noreferrer">MIT License</a>
+          <a href="https://sherlockproject.xyz" target="_blank" rel="noreferrer">Project Hub</a>
+          <a href="https://exiftool.org" target="_blank" rel="noreferrer">ExifTool Hub</a>
+          <a href="https://github.com/Code-With-Bitwizards-20" target="_blank" rel="noreferrer">Repository</a>
+          <a href="https://code-with-bitwizards.vercel.app/" target="_blank" rel="noreferrer">Code With Bitwizards</a>
+        </div>
+        <span class="footer-copy">&copy; 2025 Code With Bitwizards</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Toast Notifications -->
+  <div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+</body>
+</html>
