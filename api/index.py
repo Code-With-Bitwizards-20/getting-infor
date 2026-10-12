@@ -24,7 +24,8 @@ class VercelPathFixer:
         if "__path__=" in query_string:
             params = parse_qs(query_string)
             if "__path__" in params and params["__path__"]:
-                environ["PATH_INFO"] = params["__path__"][0]
+                raw = params["__path__"][0]
+                environ["PATH_INFO"] = raw if raw.startswith("/") else f"/{raw}"
         elif environ.get("HTTP_X_FORWARDED_URI"):
             clean = environ["HTTP_X_FORWARDED_URI"].split("?")[0]
             if clean and clean != "/api/index":

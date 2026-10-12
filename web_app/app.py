@@ -406,6 +406,21 @@ def index():
     return send_from_directory(STATIC_ROOT, "index.html")
 
 
+@app.get("/style.css")
+def serve_style_css():
+    return send_from_directory(STATIC_ROOT, "style.css", mimetype="text/css")
+
+
+@app.get("/app.js")
+def serve_app_js():
+    return send_from_directory(STATIC_ROOT, "app.js", mimetype="application/javascript")
+
+
+@app.get("/favicon.svg")
+def serve_favicon_svg():
+    return send_from_directory(STATIC_ROOT, "favicon.svg", mimetype="image/svg+xml")
+
+
 @app.get("/favicon.ico")
 def favicon():
     return send_from_directory(STATIC_ROOT, "favicon.svg", mimetype="image/svg+xml")

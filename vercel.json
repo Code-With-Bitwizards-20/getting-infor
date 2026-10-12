@@ -7,6 +7,10 @@
   },
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "/api/index?__path__=/api/status"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index?__path__=/api/$1"
     }
