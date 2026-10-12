@@ -401,6 +401,7 @@ def _run_worker(session_id: str, usernames: list[str], options: dict) -> None:
 
 
 @app.get("/")
+@app.get("/api/index")
 def index():
     return send_from_directory(STATIC_ROOT, "index.html")
 
